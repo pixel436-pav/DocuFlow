@@ -24,6 +24,20 @@ userId:{
     ref : "Document", //this created the tree structure
     default:null
 },
+isFolder:{
+    type: Boolean,
+    default :false
+},
+content:{
+type:String ,
+default:""
+},
+parentId:{
+    type: Schema.Types.ObjectId, // it points to another Document's ID
+    ref: 'Document', // Tree like Structure
+    default: null
+}
+,
 isArchived:{
     type: Boolean,
     default: false
