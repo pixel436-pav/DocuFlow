@@ -93,8 +93,12 @@ function App() {
             )}
             
             {documents.map((doc) => (
-              <Link>
-              <div 
+              <Link
+                key={doc._id}
+                to={`/documents/${doc._id}`}
+                className='block text-inherit no-underline'
+                 >
+                <div 
                 key={doc._id} 
                 className="group p-2 hover:bg-gray-700 rounded cursor-pointer flex items-center justify-between text-gray-300 transition-colors"
               >
