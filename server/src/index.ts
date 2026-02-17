@@ -55,6 +55,25 @@ try {
 }
 );
 
+app.get('/documents/:id', async (req:Request,res:Response) => {
+  try{
+  const id = req.params.id
+  const getDocuById = await Document.findById(id) // will get the document by id 
+  
+  if (!getDocuById) {
+   return res.status(404).json({message:"Document Not Found"}) // adding return here is very important as if req by client didn't find any document return will send status + json and stop the block here from running further
+  }
+  
+    res.json(getDocuById)
+  }
+  catch (error){
+    console.error(error)
+    res.status(500).json({message:"Server Error"})
+  }
+  
+  
+});
+
 
 app.delete('/documents/:id', async (req: Request, res: Response) => {
   try {
@@ -73,6 +92,8 @@ app.delete('/documents/:id', async (req: Request, res: Response) => {
     
   }
 });
+
+
 
 
 
