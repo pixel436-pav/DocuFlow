@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, Outlet,Link } from 'react-router-dom';
 // 1. We import the helper we just made above
 import api from './lib/axios';
+import {DocumentEditor} from './pages/DocumentEditor'
 import { Folder, FileText, Plus, RefreshCw, Trash2 } from 'lucide-react';
 
 interface Document {
@@ -91,6 +93,7 @@ function App() {
             )}
             
             {documents.map((doc) => (
+              <Link>
               <div 
                 key={doc._id} 
                 className="group p-2 hover:bg-gray-700 rounded cursor-pointer flex items-center justify-between text-gray-300 transition-colors"
@@ -112,27 +115,40 @@ function App() {
                 >
                   <Trash2 size={14} />
                 </button>
-              </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
+      
+      {/* 1. The wrapper div stays OUTSIDE */}
       <div className="flex-1 flex flex-col bg-gray-900">
+        
+        {/* 2. Your Header stays OUTSIDE (so it's always visible) */}
         <div className="h-14 border-b border-gray-700 flex items-center justify-between px-6 bg-gray-900">
-          <div className="text-gray-400">Select a document to view</div>
-          <button 
-            onClick={createDocument} 
-            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
-          >
+          <div className="text-gray-400">DocuFlow Workspace</div>
+          <button onClick={createDocument} className="bg-blue-600 ...">
             <Plus size={16} /> New Doc
           </button>
         </div>
-        <div className="flex-1 p-8 flex items-center justify-center text-gray-600">
-          <p>Select a file from the sidebar to start editing</p>
-        </div>
+      
+        {/* 3. The Routes block ONLY contains Route components */}
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              <div className="flex-1 p-8 flex items-center justify-center text-gray-600">
+                <p>Select a file from the sidebar to start editing</p>
+              </div>
+            } 
+          />
+          <Route path="/document/:id" element={<DocumentEditor />} />
+        </Routes>
       </div>
+     
     </div>
   );
 }
