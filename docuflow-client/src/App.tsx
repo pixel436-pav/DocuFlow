@@ -149,7 +149,7 @@ function App() {
               </div>
             } 
           />
-          <Route path="/document/:id" element={<DocumentEditor />} />
+          <Route path="/documents/:id" element={<DocumentEditor />} />
         </Routes>
       </div>
      
