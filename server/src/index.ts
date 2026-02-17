@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDb from './config/db';
 import Document from './models/Document';
+import { isAsyncFunction } from 'node:util/types';
 
 
 dotenv.config();
@@ -39,9 +40,43 @@ app.post('/documents',async (req:Request,res:Response) => {
   }
   
 }
-)
+);
+
+app.get('/documents',async (req:Request,res:Response) => {
+try {
+  // We find documents where parentId is null (meaning the are the top)
+  const docs = await Document.find({parentId: null});
+  res.json(docs)
+} catch (error) {
+  console.error(error)
+  res.status(500).json({message:"Error fetching documents"})
+}
+  
+}
+);
+
+
+app.delete('/documents/:id', async (req: Request, res: Response) => {
+  try {
+    // we find document by id 
+    const id = req.params.id
+   
+    const deleteDocu = await Document.findByIdAndDelete(id)
+    if (!deleteDocu) {
+      res.status(404).json({message:"Document not Found"})
+    }
+    res.json({ message: "Document Delete Successfully" })
+  }
+  catch (error) {
+    console.error(error)
+    res.status(500).json({ messsage: "Server Error" })
+    
+  }
+});
+
+
 
 app.listen(PORT,() => {
   console.log(`App is Sprinting on PORT ${PORT} `)
 }
-)
+);
