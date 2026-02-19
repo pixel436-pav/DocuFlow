@@ -13,7 +13,7 @@ export const DocumentEditor = () => {
   useEffect(() => {
     const getDocument = async () => {
       try {
-        const response = await api.get(`/documents/${id}`);
+        const response = await api.get(`/api/documents/${id}`);
         setDocument(response.data);
       } catch (error) {
         console.error("Failed to fetch document", error);
@@ -28,7 +28,7 @@ export const DocumentEditor = () => {
     debounce(async (updateDoc) => {
       setSaveStatus("saving");
       try {
-        await api.put(`/documents/${updateDoc._id}`, {
+        await api.put(`/api/documents/${updateDoc._id}`, {
           title: updateDoc.title,
           content: updateDoc.content,
         });

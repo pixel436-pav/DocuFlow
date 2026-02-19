@@ -22,7 +22,7 @@ function App() {
 
     try {
       // Cleaner call! No 'http://localhost' needed
-      const response = await api.post('/documents', {
+      const response = await api.post('/api/documents', {
         title: title,
         isFolder: false, 
         parentId: null   
@@ -41,7 +41,7 @@ function App() {
     if (!confirm("Are you sure you want to delete this?")) return;
 
     try {
-      await api.delete(`/documents/${id}`);
+      await api.delete(`/api/documents/${id}`);
       // Remove the deleted doc from the list on screen
       setDocuments(documents.filter(doc => doc._id !== id));
     } catch (error) {
@@ -54,7 +54,7 @@ function App() {
   const fetchDocuments = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/documents');
+      const response = await api.get('/api/documents');
       setDocuments(response.data);
     } catch (error) {
       console.error("Error fetching docs:", error);
@@ -95,7 +95,7 @@ function App() {
             {documents.map((doc) => (
               <Link
                 key={doc._id}
-                to={`/documents/${doc._id}`}
+                to={`/api/documents/${doc._id}`}
                 className='block text-inherit no-underline'
                  >
                 <div 
@@ -149,7 +149,7 @@ function App() {
               </div>
             } 
           />
-          <Route path="/documents/:id" element={<DocumentEditor />} />
+          <Route path="/api/documents/:id" element={<DocumentEditor />} />
         </Routes>
       </div>
      
