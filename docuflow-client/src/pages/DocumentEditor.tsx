@@ -28,14 +28,10 @@ export const DocumentEditor = () => {
    
     [id])
   
-  if (!document) {
-    return <div className="p-8 text-gray-500 ">loading Document...</div>
-  }
-    
   const saveDocument = async () => {
     try {
       
-      api.put('/documents/${id}', {
+      api.put(`/documents/${id}`, {
         title: document.title,
         content: document.content
       })
@@ -48,6 +44,12 @@ export const DocumentEditor = () => {
     }
   }
   
+  
+  if (!document) {
+    return <div className="p-8 text-gray-500 ">loading Document...</div>
+  }
+    
+
   return (
     <div className="flex-1 flex flex-col bg-gray-900 text-white p-8">
       <div className="max-w-4xl mx-auto w-full">
@@ -61,6 +63,11 @@ export const DocumentEditor = () => {
         
         <p className="text-gray-500 text-sm mb-8">ID: {id}</p>
   
+        <button onClick={saveDocument}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow-lg transition">
+          Save
+        </button>
+        
         {/* The Workspace Area */}
         <textarea
           value={document.content || ""}
