@@ -74,6 +74,27 @@ app.get('/documents/:id', async (req:Request,res:Response) => {
   
 });
 
+app.put('/documents/:id', async (req: Request, res: Response) => {
+  try {
+
+    const { title, content } = req.body
+    const updateDocu = await Document.findByIdAndUpdate(req.params.id,
+      {
+        title,content
+      },
+      { returnDocument: 'after' }) // this will return the updated version
+  res.json(updateDocu)
+  }
+  catch (error) {
+    console.error(error)
+    res.status(500).send(error)
+    
+  }
+  
+  
+  
+})
+
 
 app.delete('/documents/:id', async (req: Request, res: Response) => {
   try {
