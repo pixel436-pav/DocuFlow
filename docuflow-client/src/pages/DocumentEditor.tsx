@@ -32,19 +32,44 @@ export const DocumentEditor = () => {
     return <div className="p-8 text-gray-500 ">loading Document...</div>
   }
     
+  const saveDocument = async () => {
+    try {
+      
+      api.put('/documents/${id}', {
+        title: document.title,
+        content: document.content
+      })
+      
+    }
+    catch (error) {
+      console.error("Error in saving th document: ", error);
+      alert("Failed to save the changes.");
+      
+    }
+  }
   
   return (
-      <div className="text-white p-8">
-        {/* SUCCESS: We now show the real title from the server! */}
-        <h1 className="text-3xl font-bold">{document.title}</h1>
-        <p className="text-gray-400 mt-2 text-sm italic">Database ID: {id}</p>
+    <div className="flex-1 flex flex-col bg-gray-900 text-white p-8">
+      <div className="max-w-4xl mx-auto w-full">
+        {/* Title Area */}
+        <input 
+          type="text"
+          value={document.title}
+          onChange={(e) => setDocument({ ...document, title: e.target.value })}
+          className="bg-transparent text-4xl font-bold outline-none border-none w-full mb-4"
+        />
         
-        <div className="mt-10 p-4 border border-gray-700 rounded bg-gray-800">
-           <p className="text-gray-300">
-             {document.content || "This document is empty. Start writing soon!"}
-           </p>
-        </div>
+        <p className="text-gray-500 text-sm mb-8">ID: {id}</p>
+  
+        {/* The Workspace Area */}
+        <textarea
+          value={document.content || ""}
+          onChange={(e) => setDocument({ ...document, content: e.target.value })}
+          placeholder="Start typing your brilliance here..."
+          className="w-full h-[60vh] bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-gray-200"
+        />
       </div>
-    );
+    </div>
+  );
   
 }
