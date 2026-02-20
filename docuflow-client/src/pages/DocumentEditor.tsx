@@ -40,9 +40,21 @@ export const DocumentEditor = () => {
     };
     if (id) getDocument();
   }, [id]);
+// this push data into tiptap when it arrives
+useEffect(() => {
+  if (!editor || !document) return;
 
-  // 2. The Debounced save function 
-  // We wrap the debounce ITSELF in useCallback
+  // We force Tiptap to load the new text from the database.
+      // The fallback || "" ensures it doesn't crash if the document is completely blank.
+      editor.commands.setContent(document.content || "");
+      
+    // The magic is here: We ONLY run this effect when the specific document._id changes.
+    // This means it fires exactly once every time you click a different document in the sidebar!
+    }, [document?._id, editor]);
+  
+  
+// The Debounced save function 
+  
   const debouncedSave = useCallback(
     debounce(async (updateDoc) => {
       setSaveStatus("saving");
