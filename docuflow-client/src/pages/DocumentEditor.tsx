@@ -1,15 +1,32 @@
-// Try this more direct path if the standard one fails
-import "react-quill-new/dist/quill.snow.css";
+
+
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../lib/axios";
 import { debounce } from "lodash";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 
 export const DocumentEditor = () => {
   const { id } = useParams();
   const [document, setDocument] = useState<any>(null);
   // Status can be 'idle', 'saving', or 'saved'
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("saved");
+  
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: '',
+    // this editor class gives it a bit of padding and maked it looks like a page
+    editorProps: {
+      attributes: {
+        class: 'prose prose-invert max-w-none focus:outline-none min-h-[500px] p-4',
+      },
+    },
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      handleChange("content",html)
+    }
+  })
 
   // 1. Fetch document from API
   useEffect(() => {
@@ -93,17 +110,10 @@ export const DocumentEditor = () => {
         </div>
 
         <hr className="border-gray-800 mb-8" />
-
-        {/* The Workspace Area */}
-        <div>
-        <ReactQuill
-        theme="snow"
-          value={document.content || ""}
-          // ReactQuill-new passes 
-          onChange={(content)=>handleChange("content",content)}
-          placeholder="Start typing your brilliance here..."
-          className="w-full h-[65vh] bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-gray-300 placeholder-gray-700"
-          />
+        {/*tiptap Editor Surface*/}
+        <div className="bg-gray-800 rounded-lg border border-gray-700 shadow-2xl">
+          <EditorContent editor={editor}/>
+          
         </div>
         
       </div>
