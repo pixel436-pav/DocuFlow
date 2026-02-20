@@ -1,3 +1,5 @@
+// Try this more direct path if the standard one fails
+import "react-quill-new/dist/quill.snow.css";
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../lib/axios";
@@ -93,12 +95,16 @@ export const DocumentEditor = () => {
         <hr className="border-gray-800 mb-8" />
 
         {/* The Workspace Area */}
-        <textarea
+        <div>
+        <ReactQuill
+        theme="snow"
           value={document.content || ""}
-          onChange={(e) => handleChange("content", e.target.value)}
+          // ReactQuill-new passes 
+          onChange={(content)=>handleChange("content",content)}
           placeholder="Start typing your brilliance here..."
           className="w-full h-[65vh] bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-gray-300 placeholder-gray-700"
-        />
+          />
+        </div>
         
       </div>
       </div>

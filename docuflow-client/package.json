@@ -10,13 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tiptap/pm": "^3.20.0",
+    "@tiptap/react": "^3.20.0",
+    "@tiptap/starter-kit": "^3.20.0",
     "@types/lodash": "^4.17.23",
     "axios": "^1.13.5",
     "lodash": "^4.17.23",
     "lucide-react": "^0.570.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-quill": "^2.0.0",
+    "react-quill": "^2.0.0-beta.2",
+    "react-quill-new": "^3.8.3",
     "react-router-dom": "^7.13.0"
   },
   "devDependencies": {
