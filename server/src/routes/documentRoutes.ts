@@ -28,6 +28,26 @@ router.post('/documents',async (req:Request,res:Response) => {
   
 }
 );
+// CREATE  a document or folder 
+router.post('/documents', async (req: Request, res: Response) => {
+  try {
+    const { title, isFolder, parentId } = req.body;
+    
+    const newDoc = await Document.create({
+      title: title || "untitled",
+      isFolder: isFolder || false,
+      parentId: parentId || null
+    });
+    
+    res.status(201).json(newDoc);
+    
+  }
+  catch (e) {
+    console.error("Error Creating a document",e)
+    res.status(500).json({message:"Server Error"})
+  }
+})
+
 
 router.get('/documents',async (req:Request,res:Response) => {
 try {
@@ -88,7 +108,15 @@ router.delete('/documents/:id', async (req: Request, res: Response) => {
     // we find document by id 
     const id = req.params.id
    
+    // this will delete item itself folder or document
     const deleteDocu = await Document.findByIdAndDelete(id)
+    
+    // now as we delete a folder the children of the folder means the files isnside the folder becomes orphan taking up dead space - to tackle which we need cascading delete
+    
+    await Document.deleteMany({ parentId: id })
+    res.json({
+      message : "Item and Children Deleted Successfully"
+    })
     if (!deleteDocu) {
       res.status(404).json({message:"Document not Found"})
     }
