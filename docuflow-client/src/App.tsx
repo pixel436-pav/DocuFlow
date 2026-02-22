@@ -1,158 +1,79 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Outlet,Link } from 'react-router-dom';
-// 1. We import the helper we just made above
+import { Routes, Route } from 'react-router-dom';
 import api from './lib/axios';
-import {DocumentEditor} from './pages/DocumentEditor'
-import { Folder, FileText, Plus, RefreshCw, Trash2 } from 'lucide-react';
-
-interface Document {
-  _id: string;
-  title: string;
-  isFolder: boolean;
-  parentId: string | null;
-}
+import { DocumentEditor } from './pages/DocumentEditor'
+import { Sidebar } from './components/Sidebar'; // Import your new component
+import { Plus, FolderPlus } from 'lucide-react';
 
 function App() {
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // --- Function: Create Document ---
-  const createDocument = async () => {
-    const title = prompt("Enter document name:") || "Untitled Doc"; 
-
+  // Unified Create function
+  const createItem = async (isFolder: boolean = false, parentId: string | null = null) => {
+    const type = isFolder ? "folder" : "document";
+    const title = prompt(`Enter ${type} name:`) || `Untitled ${type}`;
     try {
-      // Cleaner call! No 'http://localhost' needed
-      const response = await api.post('/api/documents', {
-        title: title,
-        isFolder: false, 
-        parentId: null   
-      });
-      setDocuments([...documents, response.data]);
+      const response = await api.post('/api/documents', { title, isFolder, parentId });
+      setDocuments(prev => [...prev, response.data]);
     } catch (error) {
-      console.error("Error creating doc:", error);
-      alert("Failed to create document");
+      console.error(error);
     }
   };
 
-  // --- Function: Delete Document ---
-  const deleteDocument = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation(); // Prevents clicking the row when clicking delete
-
-    if (!confirm("Are you sure you want to delete this?")) return;
-
+  const deleteItem = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!confirm("Are you sure?")) return;
     try {
       await api.delete(`/api/documents/${id}`);
-      // Remove the deleted doc from the list on screen
-      setDocuments(documents.filter(doc => doc._id !== id));
+      setDocuments(prev => prev.filter(doc => doc._id !== id));
     } catch (error) {
-      console.error("Error deleting doc:", error);
-      alert("Failed to delete");
+      console.error(error);
     }
   };
 
-  // --- Function: Fetch Documents ---
   const fetchDocuments = async () => {
     setIsLoading(true);
     try {
       const response = await api.get('/api/documents');
       setDocuments(response.data);
-    } catch (error) {
-      console.error("Error fetching docs:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
+  useEffect(() => { fetchDocuments(); }, []);
 
   return (
     <div className="flex h-screen bg-gray-900 text-white font-sans">
-      {/* Sidebar */}
-      <div className="w-64 bg-gray-800 border-r border-gray-700 p-4 flex flex-col">
-        <div className="mb-6 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-400 flex items-center gap-2">
-            <span className="p-1 bg-blue-500/20 rounded">📄</span> DocuFlow
-          </h1>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto">
-          <div className="flex items-center justify-between mb-2 px-2">
-            <div className="text-gray-400 text-xs font-bold uppercase tracking-wider">
-              Documents
-            </div>
-            <button onClick={fetchDocuments} className="text-gray-500 hover:text-white transition">
-              <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
+      {/* 1. Uses the new Sidebar component */}
+      <Sidebar 
+        documents={documents} 
+        isLoading={isLoading} 
+        onRefresh={fetchDocuments} 
+        onCreateItem={createItem} 
+        onDeleteItem={deleteItem}
+      />
+
+      <div className="flex-1 flex flex-col bg-gray-900">
+        <div className="h-14 border-b border-gray-700 flex items-center justify-between px-6 bg-gray-800/50">
+          <div className="text-gray-400 text-sm font-medium">DocuFlow Workspace</div>
+          <div className="flex gap-2">
+             <button onClick={() => createItem(true)} className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-xs">
+              <FolderPlus size={14} /> New Folder
+            </button>
+            <button onClick={() => createItem(false)} className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold">
+              <Plus size={14} /> New Doc
             </button>
           </div>
-
-          <div className="space-y-1">
-            {documents.length === 0 && !isLoading && (
-              <div className="text-gray-500 text-sm px-2 italic">No documents yet...</div>
-            )}
-            
-            {documents.map((doc) => (
-              <Link
-                key={doc._id}
-                to={`/api/documents/${doc._id}`}
-                className='block text-inherit no-underline'
-                 >
-                <div 
-                key={doc._id} 
-                className="group p-2 hover:bg-gray-700 rounded cursor-pointer flex items-center justify-between text-gray-300 transition-colors"
-              >
-                <div className="flex items-center gap-2 truncate">
-                  {doc.isFolder ? (
-                    <Folder size={16} className="text-blue-400" />
-                  ) : (
-                    <FileText size={16} className="text-gray-400" />
-                  )}
-                  <span className="truncate">{doc.title}</span>
-                </div>
-
-                {/* The Delete Button (Only shows on hover) */}
-                <button 
-                  onClick={(e) => deleteDocument(e, doc._id)}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition-all"
-                  title="Delete"
-                >
-                  <Trash2 size={14} />
-                </button>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      
-      {/* 1. The wrapper div stays OUTSIDE */}
-      <div className="flex-1 flex flex-col bg-gray-900">
-        
-        {/* 2. Your Header stays OUTSIDE (so it's always visible) */}
-        <div className="h-14 border-b border-gray-700 flex items-center justify-between px-6 bg-gray-900">
-          <div className="text-gray-400">DocuFlow Workspace</div>
-          <button onClick={createDocument} className="bg-blue-600 ...">
-            <Plus size={16} /> New Doc
-          </button>
         </div>
       
-        {/* 3. The Routes block ONLY contains Route components */}
         <Routes>
-          <Route 
-            path="/" 
-            element={
-              <div className="flex-1 p-8 flex items-center justify-center text-gray-600">
-                <p>Select a file from the sidebar to start editing</p>
-              </div>
-            } 
-          />
+          <Route path="/" element={<div className="flex-1 flex items-center justify-center text-gray-600 italic"><p>Select a file to start editing</p></div>} />
           <Route path="/api/documents/:id" element={<DocumentEditor />} />
         </Routes>
       </div>
-     
     </div>
   );
 }
