@@ -11,48 +11,28 @@ router.get('/',(req:Request,res:Response) => {
 );
 
 
-router.post('/documents',async (req:Request,res:Response) => {
-  try {
-    const {title, isFolder, parentId} = req.body
-    const newDoc = await Document.create({
-      title: title || "Untitled", // Use the bofy title or default to "Untitles"
-      isFolder : !!isFolder, // Ensures that it is a real boolean
-      parentId : parentId || null ,// if no parent id then it is the root file
-      isArchived : false // harcoded for now until we create the login page 
-    })
-    res.status(201).json(newDoc)
-  } catch (error) {
-    res.status(500).json({message: "Server Error: Could not Create a Document"})
-    
-  }
-  
-}
-);
-// CREATE  a document or folder 
 router.post('/documents', async (req: Request, res: Response) => {
   try {
     const { title, isFolder, parentId } = req.body;
     
     const newDoc = await Document.create({
-      title: title || "untitled",
-      isFolder: isFolder || false,
-      parentId: parentId || null
+      title: title || "Untitled",
+      isFolder: !!isFolder, // Ensures it's a real boolean
+      parentId: parentId || null,
+      isArchived: false
     });
     
     res.status(201).json(newDoc);
-    
+  } catch (error) {
+    console.error("Error Creating a document", error);
+    res.status(500).json({ message: "Server Error: Could not Create a Document" });
   }
-  catch (e) {
-    console.error("Error Creating a document",e)
-    res.status(500).json({message:"Server Error"})
-  }
-})
-
+});
 
 router.get('/documents',async (req:Request,res:Response) => {
 try {
   // We find documents where parentId is null (meaning the are the top)
-  const docs = await Document.find({parentId: null});
+  const docs = await Document.find();
   res.json(docs)
 } catch (error) {
   console.error(error)
@@ -112,6 +92,10 @@ router.delete('/documents/:id', async (req: Request, res: Response) => {
     const deleteDocu = await Document.findByIdAndDelete(id)
     
     // now as we delete a folder the children of the folder means the files isnside the folder becomes orphan taking up dead space - to tackle which we need cascading delete
+    // 
+    if (!deleteDocu) {
+      return res.status(404).json({message:"Document not found"})
+    }
     
     await Document.deleteMany({ parentId: id })
     res.json({
