@@ -6,6 +6,116 @@ import api from "../lib/axios";
 import { debounce } from "lodash";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { 
+  Bold, Italic, Strikethrough, Heading1, Heading2, 
+  List, ListOrdered, Code, Quote, Undo, Redo 
+} from 'lucide-react';
+
+// 1. The MenuBar Component
+const MenuBar = ({ editor }: { editor: any }) => {
+  if (!editor) {
+    return null;
+  }
+
+  // A helper function to make our buttons look "active" when clicked
+  const getButtonClass = (isActive: boolean) => 
+    `p-2 rounded hover:bg-gray-700 transition-colors ${isActive ? 'bg-gray-700 text-blue-400' : 'text-gray-400'}`;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-800 border-b border-gray-700 rounded-t-lg">
+      <button
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        disabled={!editor.can().chain().focus().toggleBold().run()}
+        className={getButtonClass(editor.isActive('bold'))}
+        title="Bold"
+      >
+        <Bold size={16} />
+      </button>
+      
+      <button
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        disabled={!editor.can().chain().focus().toggleItalic().run()}
+        className={getButtonClass(editor.isActive('italic'))}
+        title="Italic"
+      >
+        <Italic size={16} />
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        disabled={!editor.can().chain().focus().toggleStrike().run()}
+        className={getButtonClass(editor.isActive('strike'))}
+        title="Strikethrough"
+      >
+        <Strikethrough size={16} />
+      </button>
+
+      <div className="w-px h-6 bg-gray-700 mx-1"></div> {/* Divider */}
+
+      <button
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        className={getButtonClass(editor.isActive('heading', { level: 1 }))}
+        title="Heading 1"
+      >
+        <Heading1 size={16} />
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        className={getButtonClass(editor.isActive('heading', { level: 2 }))}
+        title="Heading 2"
+      >
+        <Heading2 size={16} />
+      </button>
+
+      <div className="w-px h-6 bg-gray-700 mx-1"></div> {/* Divider */}
+
+      <button
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        className={getButtonClass(editor.isActive('bulletList'))}
+        title="Bullet List"
+      >
+        <List size={16} />
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        className={getButtonClass(editor.isActive('orderedList'))}
+        title="Numbered List"
+      >
+        <ListOrdered size={16} />
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        className={getButtonClass(editor.isActive('blockquote'))}
+        title="Quote"
+      >
+        <Quote size={16} />
+      </button>
+
+      <div className="w-px h-6 bg-gray-700 mx-1"></div> {/* Divider */}
+
+      <button
+        onClick={() => editor.chain().focus().undo().run()}
+        disabled={!editor.can().chain().focus().undo().run()}
+        className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-50"
+        title="Undo"
+      >
+        <Undo size={16} />
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().redo().run()}
+        disabled={!editor.can().chain().focus().redo().run()}
+        className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-50"
+        title="Redo"
+      >
+        <Redo size={16} />
+      </button>
+    </div>
+  );
+};
 
 export const DocumentEditor = () => {
   const { id } = useParams();
