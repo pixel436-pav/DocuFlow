@@ -232,13 +232,21 @@ useEffect(() => {
         </div>
 
         <hr className="border-gray-800 mb-8" />
-        {/*tiptap Editor Surface*/}
-        <div className="bg-gray-800 rounded-lg border border-gray-700 shadow-2xl">
-          <EditorContent editor={editor}/>
-          
-        </div>
-        
-      </div>
-      </div>
-      ); // This closes the return
-      }; // This closes the DocumentEditor component 
+                
+                {/* Tiptap Editor Surface With New Menu Bar */}
+                <div className="bg-gray-800/50 rounded-lg border border-gray-700 shadow-2xl flex flex-col min-h-[500px]">
+                  
+                  {/* The Steering Wheel */}
+                  <MenuBar editor={editor}/>
+                  
+                  {/* The Actual Text Area - Notice the simplified class here! */}
+                  <div className="flex-1 p-4 overflow-y-auto cursor-text" onClick={() => editor?.commands.focus()}>
+                    <EditorContent editor={editor}/>
+                  </div>
+                  
+                </div>
+                
+              </div>
+            </div>
+          ); // This closes the return
+        }; // This closes the DocumentEditor component
