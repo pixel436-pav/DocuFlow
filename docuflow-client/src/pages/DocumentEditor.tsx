@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../lib/axios";
-import { debounce } from "lodash";
+import { debounce, update } from "lodash";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { 
@@ -117,11 +117,25 @@ const MenuBar = ({ editor }: { editor: any }) => {
   );
 };
 
-export const DocumentEditor = () => {
+export const DocumentEditor = ({ onDocumentUpdate }: { onDocumentUpdate?: (doc: any) => void }) => {
   const { id } = useParams();
   const [document, setDocument] = useState<any>(null);
   // Status can be 'idle', 'saving', or 'saved'
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("saved");
+  const [folders, setFolders] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchFolder = async () => {
+      try {
+        const response = await api.get('/api/documents');
+        setFolders(response.data.filter((d:any)=>d.isFolder))
+      } catch (error) {
+        console.error("Failed to Fetch Document ", error)
+        
+      }
+    };
+    fetchFolder();
+  },[])
   
   const editor = useEditor({
     extensions: [StarterKit],
@@ -167,13 +181,19 @@ useEffect(() => {
   
   const debouncedSave = useCallback(
     debounce(async (updateDoc) => {
+      
+     
       setSaveStatus("saving");
       try {
-        await api.put(`/api/documents/${updateDoc._id}`, {
+        const response = await api.put(`/api/documents/${updateDoc._id}`, {
           title: updateDoc.title,
           content: updateDoc.content,
+          parentId: updateDoc.parentId
         });
         setSaveStatus("saved");
+        if (onDocumentUpdate) {
+          onDocumentUpdate(response.data)
+        }
       } catch (error) {
         console.error("Auto-Save failed", error);
         setSaveStatus("idle");
@@ -183,7 +203,7 @@ useEffect(() => {
   );
 
   // 3. Centralized Change Handler
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | null) => {
     if (!document) return;
     
     // Update local state for instant UI feedback
@@ -204,49 +224,66 @@ useEffect(() => {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-900 text-white p-8 overflow-y-auto">
-      <div className="max-w-4xl mx-auto w-full">
-        
-        {/* Header Section */}
-        <div className="flex justify-between items-start mb-6">
-          <div className="flex-1">
-            <input
-              type="text"
-              value={document.title}
-              onChange={(e) => handleChange("title", e.target.value)}
-              className="bg-transparent text-4xl font-bold outline-none border-none w-full text-white placeholder-gray-700"
-              placeholder="Untitled Document"
-            />
-            <p className="text-gray-600 text-xs mt-2 font-mono">DOC_ID: {id}</p>
-          </div>
-
-          {/* Status Indicator */}
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800/50 border border-gray-700">
-            <div className={`w-2 h-2 rounded-full ${
-              saveStatus === "saving" ? "bg-blue-400 animate-ping" : "bg-green-500"
-            }`} />
-            <span className="text-[10px] font-bold uppercase tracking-tighter text-gray-400">
-              {saveStatus === "saving" ? "Saving..." : "Synced"}
-            </span>
-          </div>
-        </div>
-
-        <hr className="border-gray-800 mb-8" />
+      <div className="flex-1 flex flex-col bg-gray-900 text-white p-8 overflow-y-auto">
+        <div className="max-w-4xl mx-auto w-full">
+          
+          {/* --- HEADER SECTION --- */}
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={document.title}
+                onChange={(e) => handleChange("title", e.target.value)}
+                className="bg-transparent text-4xl font-bold outline-none border-none w-full text-white placeholder-gray-700 mb-2"
+                placeholder="Untitled Document"
+              />
+              
+              <div className="flex items-center gap-4">
+                <p className="text-gray-600 text-xs font-mono">DOC_ID: {id}</p>
                 
-                {/* Tiptap Editor Surface With New Menu Bar */}
-                <div className="bg-gray-800/50 rounded-lg border border-gray-700 shadow-2xl flex flex-col min-h-[500px]">
-                  
-                  {/* The Steering Wheel */}
-                  <MenuBar editor={editor}/>
-                  
-                  {/* The Actual Text Area - Notice the simplified class here! */}
-                  <div className="flex-1 p-4 overflow-y-auto cursor-text" onClick={() => editor?.commands.focus()}>
-                    <EditorContent editor={editor}/>
-                  </div>
-                  
-                </div>
-                
+                {/* The "Move to Folder" Dropdown */}
+                <select 
+                  value={document.parentId || ""} 
+                  onChange={(e) => handleChange("parentId", e.target.value || null)}
+                  className="bg-gray-800 text-xs text-gray-400 border border-gray-700 rounded px-2 py-1 outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                >
+                  <option value="">📁 Root Workspace</option>
+                  {folders.map(f => (
+                    f._id !== document._id && (
+                      <option key={f._id} value={f._id}>
+                        ↳ Move to {f.title}
+                      </option>
+                    )
+                  ))}
+                </select>
               </div>
             </div>
-          ); // This closes the return
-        }; // This closes the DocumentEditor component
+  
+            {/* --- STATUS INDICATOR --- */}
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800/50 border border-gray-700 mt-2">
+              <div className={`w-2 h-2 rounded-full ${
+                saveStatus === "saving" ? "bg-blue-400 animate-ping" : "bg-green-500"
+              }`} />
+              <span className="text-[10px] font-bold uppercase tracking-tighter text-gray-400">
+                {saveStatus === "saving" ? "Saving..." : "Synced"}
+              </span>
+            </div>
+          </div>
+  
+          <hr className="border-gray-800 mb-8" />
+          
+          {/* --- TIPTAP EDITOR SURFACE --- */}
+          <div className="bg-gray-800/50 rounded-lg border border-gray-700 shadow-2xl flex flex-col min-h-[500px]">
+            
+            <MenuBar editor={editor}/>
+            
+            <div className="flex-1 p-4 overflow-y-auto cursor-text" onClick={() => editor?.commands.focus()}>
+              <EditorContent editor={editor}/>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+    ); 
+  };

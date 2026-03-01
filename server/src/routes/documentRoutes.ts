@@ -64,10 +64,10 @@ router.get('/documents/:id', async (req:Request,res:Response) => {
 router.put('/documents/:id', async (req: Request, res: Response) => {
   try {
 
-    const { title, content } = req.body
+    const { title, content, parentId } = req.body
     const updateDocu = await Document.findByIdAndUpdate(req.params.id,
       {
-        title,content
+        title,content, parentId
       },
       { returnDocument: 'after' }) // this will return the updated version
   res.json(updateDocu)

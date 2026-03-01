@@ -48,6 +48,11 @@ function App() {
       console.error(error);
     }
   };
+  
+  const handleDocumentUpdate = (updatedDoc: any) => {
+      // This instantly swaps the old document with the new one in the sidebar
+      setDocuments(prev => prev.map(doc => doc._id === updatedDoc._id ? updatedDoc : doc));
+    };
 
   const fetchDocuments = async () => {
     setIsLoading(true);
@@ -88,7 +93,7 @@ function App() {
       
         <Routes>
           <Route path="/" element={<div className="flex-1 flex items-center justify-center text-gray-600 italic"><p>Select a file to start editing</p></div>} />
-          <Route path="/api/documents/:id" element={<DocumentEditor />} />
+          <Route path="/api/documents/:id" element={<DocumentEditor onDocumentUpdate={handleDocumentUpdate} />} />
         </Routes>
       </div>
     </div>
