@@ -1,5 +1,5 @@
 import mongoose, {Schema , Document} from "mongoose";
-import { title } from "node:process";
+
 
 
 // this is the type script interface that ('Rules for Our Code')
