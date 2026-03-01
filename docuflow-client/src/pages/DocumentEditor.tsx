@@ -10,6 +10,8 @@ import {
   Bold, Italic, Strikethrough, Heading1, Heading2, 
   List, ListOrdered, Code, Quote, Undo, Redo 
 } from 'lucide-react';
+import {TextStyle} from '@tiptap/extension-text-style';
+import {FontFamily} from '@tiptap/extension-font-family';
 
 // 1. The MenuBar Component
 const MenuBar = ({ editor }: { editor: any }) => {
@@ -23,6 +25,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
   return (
     <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-800 border-b border-gray-700 rounded-t-lg">
+      {/* 1. Basic Formatting */}
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
         disabled={!editor.can().chain().focus().toggleBold().run()}
@@ -52,6 +55,29 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
       <div className="w-px h-6 bg-gray-700 mx-1"></div> {/* Divider */}
 
+      {/* 2. FONT FAMILY DROPDOWN */}
+      <select
+        onChange={(e) => {
+          if (e.target.value === 'default') {
+            editor.chain().focus().unsetFontFamily().run();
+          } else {
+            editor.chain().focus().setFontFamily(e.target.value).run();
+          }
+        }}
+        className="bg-gray-900 text-gray-400 text-xs border border-gray-700 rounded px-2 py-1 outline-none focus:border-blue-500 transition-colors cursor-pointer"
+        title="Font Family"
+      >
+        <option value="default">Default Font</option>
+        <option value="Inter">Inter</option>
+        <option value="monospace">Monospace</option>
+        <option value="serif">Serif</option>
+        <option value="cursive">Cursive</option>
+        <option value="Comic Sans MS, Comic Sans">Comic Sans</option>
+      </select>
+
+      <div className="w-px h-6 bg-gray-700 mx-1"></div> {/* Divider */}
+
+      {/* 3. Headings */}
       <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         className={getButtonClass(editor.isActive('heading', { level: 1 }))}
@@ -70,6 +96,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
       <div className="w-px h-6 bg-gray-700 mx-1"></div> {/* Divider */}
 
+      {/* 4. Lists & Quotes */}
       <button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         className={getButtonClass(editor.isActive('bulletList'))}
@@ -96,6 +123,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
       <div className="w-px h-6 bg-gray-700 mx-1"></div> {/* Divider */}
 
+      {/* 5. History (Undo/Redo) */}
       <button
         onClick={() => editor.chain().focus().undo().run()}
         disabled={!editor.can().chain().focus().undo().run()}
@@ -138,7 +166,7 @@ export const DocumentEditor = ({ onDocumentUpdate }: { onDocumentUpdate?: (doc: 
   },[])
   
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit,TextStyle,FontFamily],
     content: '',
     // this editor class gives it a bit of padding and maked it looks like a page
     editorProps: {
@@ -275,7 +303,7 @@ useEffect(() => {
           {/* --- TIPTAP EDITOR SURFACE --- */}
           <div className="bg-gray-800/50 rounded-lg border border-gray-700 shadow-2xl flex flex-col min-h-[500px]">
             
-            <MenuBar editor={editor}/>
+            <MenuBar editor={editor} />
             
             <div className="flex-1 p-4 overflow-y-auto cursor-text" onClick={() => editor?.commands.focus()}>
               <EditorContent editor={editor}/>
