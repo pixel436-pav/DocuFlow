@@ -20,6 +20,22 @@ function App() {
       console.error(error);
     }
   };
+  
+  const renameItem = async (e: React.MouseEvent, id: string, currentTitle: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const newTitle = prompt("Rename to:", currentTitle);
+    if (!newTitle || newTitle === currentTitle) return;
+  
+    try {
+      const response = await api.put(`/api/documents/${id}`, { title: newTitle });
+      // Update the local state so the sidebar changes instantly
+      setDocuments(prev => prev.map(doc => doc._id === id ? response.data : doc));
+    } catch (error) {
+      console.error("Rename failed", error);
+    }
+  };
 
   const deleteItem = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -49,6 +65,7 @@ function App() {
     <div className="flex h-screen bg-gray-900 text-white font-sans">
       {/* 1. Uses the new Sidebar component */}
       <Sidebar 
+        onRenameItem={renameItem}
         documents={documents} 
         isLoading={isLoading} 
         onRefresh={fetchDocuments} 
