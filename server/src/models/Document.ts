@@ -21,7 +21,7 @@ const DocumentSchema = new Schema({
 },
 userId:{
     type: Schema.Types.ObjectId, // It points to another Document's ID
-    ref : "Document", //this created the tree structure
+    ref : "User", //this created the tree structure
     default:null
 },
 isFolder:{
@@ -36,7 +36,7 @@ parentId:{
     type: Schema.Types.ObjectId, // it points to another Document's ID
     ref: 'Document', // Tree like Structure
     default: null
-}
+  }
 ,
 isArchived:{
     type: Boolean,
