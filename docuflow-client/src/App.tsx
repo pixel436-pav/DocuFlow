@@ -1,20 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import api from './lib/axios';
-import { DocumentEditor } from './pages/DocumentEditor'
-import { Sidebar } from './components/Sidebar'; // Import your new component
+import { DocumentEditor } from './pages/DocumentEditor';
+import { Sidebar } from './components/Sidebar';
 import { Plus, FolderPlus } from 'lucide-react';
+import Login from './pages/Login'; //  Import your new Login page
+import { useAuth } from './context/AuthContext'; //  Import your Brain
 
 function App() {
+  // 1. Ask the Global Brain if we are logged in
+  const { token, loading } = useAuth(); 
+
   const [documents, setDocuments] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDocsLoading, setIsDocsLoading] = useState(false); // Renamed to avoid clashing with Auth loading
 
   // Unified Create function
   const createItem = async (isFolder: boolean = false, parentId: string | null = null) => {
     const type = isFolder ? "folder" : "document";
     const title = prompt(`Enter ${type} name:`) || `Untitled ${type}`;
     try {
-      const response = await api.post('/api/documents', { title, isFolder, parentId });
+      const response = await api.post('/documents', { title, isFolder, parentId }); // Make sure URL matches backend exactly!
       setDocuments(prev => [...prev, response.data]);
     } catch (error) {
       console.error(error);
@@ -29,8 +34,7 @@ function App() {
     if (!newTitle || newTitle === currentTitle) return;
   
     try {
-      const response = await api.put(`/api/documents/${id}`, { title: newTitle });
-      // Update the local state so the sidebar changes instantly
+      const response = await api.put(`/documents/${id}`, { title: newTitle });
       setDocuments(prev => prev.map(doc => doc._id === id ? response.data : doc));
     } catch (error) {
       console.error("Rename failed", error);
@@ -42,7 +46,7 @@ function App() {
     e.preventDefault();
     if (!confirm("Are you sure?")) return;
     try {
-      await api.delete(`/api/documents/${id}`);
+      await api.delete(`/documents/${id}`);
       setDocuments(prev => prev.filter(doc => doc._id !== id));
     } catch (error) {
       console.error(error);
@@ -50,29 +54,51 @@ function App() {
   };
   
   const handleDocumentUpdate = (updatedDoc: any) => {
-      // This instantly swaps the old document with the new one in the sidebar
       setDocuments(prev => prev.map(doc => doc._id === updatedDoc._id ? updatedDoc : doc));
-    };
+  };
 
   const fetchDocuments = async () => {
-    setIsLoading(true);
+    setIsDocsLoading(true);
     try {
-      const response = await api.get('/api/documents');
+      const response = await api.get('/documents'); // Make sure URL matches backend exactly
       setDocuments(response.data);
+    } catch (error) {
+       console.error("Failed to fetch documents", error);
     } finally {
-      setIsLoading(false);
+      setIsDocsLoading(false);
     }
   };
 
-  useEffect(() => { fetchDocuments(); }, []);
+  //  2. ONLY fetch documents if the user actually has a token!
+  useEffect(() => { 
+    if (token) {
+      fetchDocuments(); 
+    }
+  }, [token]);
 
+  // 3. Show a blank screen while the Brain checks localStorage
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center bg-gray-900 text-white">Loading...</div>;
+  }
+
+  //  4. THE BOUNCER UI: If no token, ONLY show the Login page (hide Sidebar!)
+  if (!token) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        {/* If they try to go anywhere else, force them to login */}
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    );
+  }
+
+  // 5. IF LOGGED IN: Show the beautiful DocuFlow Dashboard
   return (
     <div className="flex h-screen bg-gray-900 text-white font-sans">
-      {/* 1. Uses the new Sidebar component */}
       <Sidebar 
         onRenameItem={renameItem}
         documents={documents} 
-        isLoading={isLoading} 
+        isLoading={isDocsLoading} 
         onRefresh={fetchDocuments} 
         onCreateItem={createItem} 
         onDeleteItem={deleteItem}
@@ -90,8 +116,10 @@ function App() {
             </button>
           </div>
         </div>
-      
+        
         <Routes>
+          {/* If they are logged in and try to go to /login, redirect back home */}
+          <Route path="/login" element={<Navigate to="/" />} />
           <Route path="/" element={<div className="flex-1 flex items-center justify-center text-gray-600 italic"><p>Select a file to start editing</p></div>} />
           <Route path="/api/documents/:id" element={<DocumentEditor onDocumentUpdate={handleDocumentUpdate} />} />
         </Routes>

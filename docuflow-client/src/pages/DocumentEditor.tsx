@@ -155,7 +155,7 @@ export const DocumentEditor = ({ onDocumentUpdate }: { onDocumentUpdate?: (doc: 
   useEffect(() => {
     const fetchFolder = async () => {
       try {
-        const response = await api.get('/api/documents');
+        const response = await api.get('/documents');
         setFolders(response.data.filter((d:any)=>d.isFolder))
       } catch (error) {
         console.error("Failed to Fetch Document ", error)
@@ -184,7 +184,7 @@ export const DocumentEditor = ({ onDocumentUpdate }: { onDocumentUpdate?: (doc: 
   useEffect(() => {
     const getDocument = async () => {
       try {
-        const response = await api.get(`/api/documents/${id}`);
+        const response = await api.get(`/documents/${id}`);
         setDocument(response.data);
       } catch (error) {
         console.error("Failed to fetch document", error);
@@ -213,7 +213,7 @@ useEffect(() => {
      
       setSaveStatus("saving");
       try {
-        const response = await api.put(`/api/documents/${updateDoc._id}`, {
+        const response = await api.put(`/documents/${updateDoc._id}`, {
           title: updateDoc.title,
           content: updateDoc.content,
           parentId: updateDoc.parentId
